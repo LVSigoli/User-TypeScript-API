@@ -1,16 +1,25 @@
-import { MongoClient } from "../../database/mongo";
 import { User } from "../../models/user";
-import { CreateUserParams, iCreateUserRepository } from "./protocols";
+import { HttpRequest, HttpResponse } from "../protocols";
+import { CreateUserParams, ICreateUserController, iCreateUserRepository } from "./protocols";
 
-export class MongoCreateUser implements iCreateUserRepository {
-  async createUser(params: CreateUserParams): Promise<User> {
-    const { insertedId } = await MongoClient.db.collection("user").insertOne(params);
-    const user = await MongoClient.db.collection<Omit<User, "id">>("users").findOne({ _id: insertedId });
+export class CreateUserController implements ICreateUserController {
+  constructor(private readonly createUserRepository: iCreateUserRepository) {}
+  async handle(httprequest: HttpRequest<CreateUserParams>): Promise<HttpResponse<User>> {
+    try {
+      //verificar campos aleatorios
+      const requiredFields = ["fistName", "lastName", "email", "password"];
+      for (const field of requiredFields)
+        if (!httprequest?.body[field as keyof CreateUserParams]?.length) {
+          return { statusCode: 400, body: "Field is required" };
+        }
 
-    if (!user) {
-      throw new Error("user not created");
+      const user = await this.createUserRepository.createUser(httprequest.body);
+      return { statusCode: 2001, body: user };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        body: "Something went wrong",
+      };
     }
-    const { _id, ...rest } = user;
-    return { id: _id.toHexString(), ...rest };
   }
 }

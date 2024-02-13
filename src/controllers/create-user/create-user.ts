@@ -1,33 +1,34 @@
 import validator from "validator";
-import { User } from "../../models/user";
-import { HttpRequest, HttpResponse } from "../protocols";
-import { CreateUserParams, ICreateUserController, iCreateUserRepository } from "./protocols";
 
-export class CreateUserController implements ICreateUserController {
-  constructor(private readonly createUserRepository: iCreateUserRepository) {}
-  async handle(httprequest: HttpRequest<CreateUserParams>): Promise<HttpResponse<User>> {
+import { User } from "../../models/user";
+import { badRequest, created, serverError } from "../helpers";
+import { HttpRequest, HttpResponse, IController } from "../protocols";
+import { CreateUserParams, ICreateUserRepository } from "./protocols";
+
+export class CreateUserController implements IController {
+  constructor(private readonly createUserRepository: ICreateUserRepository) {}
+
+  async handle(httpRequest: HttpRequest<CreateUserParams>): Promise<HttpResponse<User | string>> {
     try {
       const requiredFields = ["firstName", "lastName", "email", "password"];
-      for (const field of requiredFields)
-        if (!httprequest?.body[field as keyof CreateUserParams]?.length) {
-          return { statusCode: 400, body: `Field ${field} is required` };
+
+      for (const field of requiredFields) {
+        if (!httpRequest?.body?.[field as keyof CreateUserParams]?.length) {
+          return badRequest(`Field ${field} is required`);
         }
-
-      const isValidMail = validator.isEmail(httprequest.body.email);
-
-      if (!isValidMail) {
-        return {
-          statusCode: 400,
-          body: "E-mail is not valid",
-        };
       }
-      const user = await this.createUserRepository.createUser(httprequest.body);
-      return { statusCode: 2001, body: user };
+
+      const emailIsValid = validator.isEmail(httpRequest.body!.email);
+
+      if (!emailIsValid) {
+        return badRequest("E-mail is invalid");
+      }
+
+      const user = await this.createUserRepository.createUser(httpRequest.body!);
+
+      return created<User>(user);
     } catch (error) {
-      return {
-        statusCode: 500,
-        body: "Something went wrong",
-      };
+      return serverError();
     }
   }
 }

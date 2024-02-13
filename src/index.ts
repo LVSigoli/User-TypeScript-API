@@ -1,14 +1,14 @@
 import express from "express";
 import { config } from "dotenv";
-import { GetUsersController } from "./controllers/getusers/GetUsers";
-import { MongoGetUsersRepository } from "./repositories/get-users/mongo-get-users";
 import { MongoClient } from "./database/mongo";
-import { MongoCreateUsersRepository } from "./repositories/create-users/mongo-create-user";
-import { CreateUserController } from "./controllers/create-user/create-user";
-import { MongoUpdateUserRepository } from "./repositories/update-user/mongo-update-user";
-import { UpdateUserController } from "./controllers/update-user/update-user";
-import { MongoDeleteUserRepository } from "./repositories/delete-user/mongo-delete-user";
+import { GetUsersController } from "./controllers/getusers/GetUsers";
 import { DeleteUserController } from "./controllers/delete-user/delete-user";
+import { UpdateUserController } from "./controllers/update-user/update-user";
+import { CreateUserController } from "./controllers/create-user/create-user";
+import { MongoGetUsersRepository } from "./repositories/get-users/mongo-get-users";
+import { MongoCreateUsersRepository } from "./repositories/create-users/mongo-create-user";
+import { MongoUpdateUserRepository } from "./repositories/update-user/mongo-update-user";
+import { MongoDeleteUserRepository } from "./repositories/delete-user/mongo-delete-user";
 
 const main = async () => {
   config();
